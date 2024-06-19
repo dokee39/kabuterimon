@@ -16,21 +16,16 @@ DEBUG := 1
 C_OPT := -Og
 CPP_OPT := -Og -std=c++17
 # set the gcc used
-GCC_PREFIX := arm-none-eabi-
+GCC_PREFIX := /opt/wch/mounriver-studio-toolchain-riscv-gcc/bin/riscv-none-embed-
 # add the chip info
-CPU := -mcpu=cortex-m4
-FPU := -mfpu=fpv4-sp-d16
-FLOAT-ABI := -mfloat-abi=hard
+MCU := -march=rv32imac -mabi=ilp32 
 # macros for gcc
 AS_DEFINES :=
-C_DEFINES := \
-USE_HAL_DRIVER \
-STM32F405xx \
-ARM_MATH_CM4
+C_DEFINES :=
 
 # link script
-LDSCRIPT := STM32F405RGTx_FLASH.ld
-LIBS := -larm_cortexM4lf_math
+LDSCRIPT := Link.ld
+LIBS := -lnosys
 # figure out compiler settings
 AS := $(GCC_PREFIX)gcc -x assembler-with-cpp
 CC := $(GCC_PREFIX)gcc
@@ -40,8 +35,8 @@ SZ := $(GCC_PREFIX)size
 GDB := $(GCC_PREFIX)gdb
 HEX := $(CP) -O ihex
 BIN := $(CP) -O binary
-OOCD := openocd
-OOCDFLAGS := -f interface/cmsis-dap.cfg -f target/stm32f4x.cfg
+OOCD := openocd-wch-riscv
+OOCDFLAGS := 
 
 
 # --------------------------------------------------------------
@@ -49,15 +44,12 @@ OOCDFLAGS := -f interface/cmsis-dap.cfg -f target/stm32f4x.cfg
 # --------------------------------------------------------------
 SRC_DIRS := \
 App \
-Bsp \
-Components \
 Core \
-Drivers/STM32F4xx_HAL_Driver \
-Drivers/CMSIS/Include \
-Drivers/CMSIS/Device/ST/STM32F4xx/Include 
+Components \
+Driver \
 
 ASM_SRCS := \
-startup_stm32f405xx.s
+startup_ch32v20x_D6.s
 
 # where the output files are stored
 BUILD_DIR := ./build
@@ -70,7 +62,6 @@ INC_DIRS := $(shell find $(SRC_DIRS) -type d)
 # --------------------------------------------------------------
 # generate flags for compiler
 # --------------------------------------------------------------
-MCU := $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 AS_DEFS := $(addprefix -D,$(AS_DEFINES))
 C_DEFS := $(addprefix -D,$(C_DEFINES))
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
@@ -86,7 +77,7 @@ ifeq ($(DEBUG), 1)
 endif
 # libraries
 LIBS += -lc -lm -lstdc++
-LDFLAGS := $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIB_FLAGS) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -Wl,--no-warn-rwx-segments
+LDFLAGS := $(MCU) -mno-save-restore -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -Wall -nostartfiles -Xlinker --gc-sections -specs=nano.specs -specs=nosys.specs -Wl,-Map=$(BUILD_DIR)/$(TARGET).map -T$(LDSCRIPT) $(LIB_FLAGS) $(LIBS) 
 
 # --------------------------------------------------------------
 # build your project!
@@ -151,12 +142,12 @@ clean:
 
 .PHONY: flash
 flash: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET).hex
-	@echo -e "\e[1;33m[OpenOCD]\e[0m programming..."
-	@$(OOCD) $(OOCDFLAGS) -c "program $(BUILD_DIR)/$(TARGET).bin 0x08000000 verify reset exit"
+	@echo -e "\e[1;33m[OpenOCD]\e[0;0m programming..."
+	@$(OOCD) $(OOCDFLAGS) -c init -c halt -c "program $(BUILD_DIR)/$(TARGET).bin verify reset" -c exit
 
 .PHONY: debug
 debug: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).bin $(BUILD_DIR)/$(TARGET).hex
-	@echo -e "\e[1;33mgenerating debug files...\e[0m"
+	@echo -e "\e[1;33mgenerating debug files...\e[0;0m"
 	@echo "#!/bin/sh" > debug-ocd.sh
 	@echo "#!/bin/sh" > debug-gdb.sh
 	@echo "openocd -f interface/cmsis-dap.cfg -f target/stm32f4x.cfg" >> debug-ocd.sh
