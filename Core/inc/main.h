@@ -1,8 +1,13 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+#include "ch32v20x.h"
+
 #define SYSTICK_PERIOD_US 100
 #define US_TO_TICK(t) ((t) / SYSTICK_PERIOD_US)
+
+#define LED_PIN                 GPIO_Pin_6
+#define LED_PIN_PORT            GPIOA
 
 #define PHASE_A_GPIO_LOW        GPIO_Pin_1
 #define PHASE_A_GPIO_PORT_LOW   GPIOB

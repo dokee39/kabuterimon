@@ -5,7 +5,7 @@ typedef enum
 {
     LED_ON,
     LED_OFF,
-}LED_STATUS_enum;
+} LED_STATUS_enum;
 
 void led_init(void);
 void led_task(void);

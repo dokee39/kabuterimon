@@ -55,6 +55,14 @@ static void peripheral_init(void)
     SysTick->CTLR = 0xF;
     NVIC_SetPriority(SysTicK_IRQn, 0xE0);
 
+    // led pin init
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB, ENABLE);
+    GPIO_InitStruct.GPIO_Pin   = LED_PIN;
+    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(LED_PIN_PORT, &GPIO_InitStruct);
+    LED_PIN_PORT->BSHR = LED_PIN;
+
     // opama init
     GPIO_InitStruct.GPIO_Pin  = GPIO_Pin_5;
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AIN;
@@ -79,36 +87,34 @@ static void peripheral_init(void)
     NVIC_EnableIRQ(EXTI2_IRQn);
     NVIC_EnableIRQ(SysTicK_IRQn);
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
-    GPIO_PinRemapConfig(GPIO_PartialRemap_TIM1, ENABLE);
-    GPIO_InitStruct.GPIO_Pin   = PHASE_A_GPIO_LOW;
-    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF_PP ;
+    // phase lower pin init
+    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_Out_PP;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStruct.GPIO_Pin   = PHASE_A_GPIO_LOW;
     GPIO_Init(PHASE_A_GPIO_PORT_LOW, &GPIO_InitStruct);
     GPIO_InitStruct.GPIO_Pin   = PHASE_B_GPIO_LOW;
-    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF_PP ;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(PHASE_B_GPIO_PORT_LOW, &GPIO_InitStruct);
     GPIO_InitStruct.GPIO_Pin   = PHASE_C_GPIO_LOW;
-    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF_PP ;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(PHASE_C_GPIO_PORT_LOW, &GPIO_InitStruct);
+    PHASE_A_GPIO_PORT_LOW->BSHR = PHASE_A_GPIO_LOW;
+    PHASE_B_GPIO_PORT_LOW->BSHR = PHASE_B_GPIO_LOW;
+    PHASE_C_GPIO_PORT_LOW->BSHR = PHASE_C_GPIO_LOW;
+
+    // phase upper pin init
     GPIO_InitStruct.GPIO_Pin   = PHASE_A_GPIO_HIGH;
     GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF_PP ;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(PHASE_A_GPIO_PORT_HIGH, &GPIO_InitStruct);
     GPIO_InitStruct.GPIO_Pin   = PHASE_B_GPIO_HIGH;
-    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF_PP ;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(PHASE_B_GPIO_PORT_HIGH, &GPIO_InitStruct);
     GPIO_InitStruct.GPIO_Pin   = PHASE_C_GPIO_HIGH;
-    GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_AF_PP ;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(PHASE_C_GPIO_PORT_HIGH, &GPIO_InitStruct);
+
+    // timer 1 for three-phase output
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
     TIM_DeInit(TIM1);
     TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
-    #warning "TODO"
+#warning "TODO"
     TIM_TimeBaseInitStructure.TIM_Period            = 3000 - 1;
     TIM_TimeBaseInitStructure.TIM_Prescaler         = 0;
     TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
@@ -142,7 +148,7 @@ static void peripheral_init(void)
     TIM_BDTRInitStructure.TIM_OSSIState       = TIM_OSSIState_Disable;
     TIM_BDTRInitStructure.TIM_OSSRState       = TIM_OSSRState_Disable;
     TIM_BDTRInitStructure.TIM_LOCKLevel       = TIM_LOCKLevel_OFF;
-    #warning "TODO"
+#warning "TODO"
     TIM_BDTRInitStructure.TIM_DeadTime        = 30;
     TIM_BDTRInitStructure.TIM_Break           = TIM_Break_Disable;
     TIM_BDTRInitStructure.TIM_BreakPolarity   = TIM_BreakPolarity_High;
@@ -155,20 +161,23 @@ static void peripheral_init(void)
     TIM_CCxCmd(TIM1, TIM_Channel_1, TIM_CCx_Enable);
     TIM_CCxCmd(TIM1, TIM_Channel_2, TIM_CCx_Enable);
     TIM_CCxCmd(TIM1, TIM_Channel_3, TIM_CCx_Enable);
-    TIM_CCxNCmd(TIM1, TIM_Channel_1, TIM_CCxN_Enable);
-    TIM_CCxNCmd(TIM1, TIM_Channel_2, TIM_CCxN_Enable);
-    TIM_CCxNCmd(TIM1, TIM_Channel_3, TIM_CCxN_Enable);
+    // TIM_CCxNCmd(TIM1, TIM_Channel_1, TIM_CCxN_Enable);
+    // TIM_CCxNCmd(TIM1, TIM_Channel_2, TIM_CCxN_Enable);
+    // TIM_CCxNCmd(TIM1, TIM_Channel_3, TIM_CCxN_Enable);
     TIM_Cmd(TIM1, ENABLE);
+#warning "set duty = 0"
     TIM_CtrlPWMOutputs(TIM1, ENABLE);
     TIM_ARRPreloadConfig(TIM1, ENABLE);
     TIM_GenerateEvent(TIM1, TIM_EventSource_Update);
 
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+    // pwm input pin init
     GPIO_InitStruct.GPIO_Pin   = INPUT_GPIO_PIN;
     GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_IPU;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(INPUT_GPIO_PORT, &GPIO_InitStruct);
+
+    // timer 2 for pwm input capture
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
     TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
     TIM_TimeBaseInitStructure.TIM_Period            = 0xffff;
     TIM_TimeBaseInitStructure.TIM_Prescaler         = SystemCoreClock / 1000000 - 1;
