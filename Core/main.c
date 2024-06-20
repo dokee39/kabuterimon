@@ -3,10 +3,10 @@
 #include "ch32v20x.h"
 #include "timesilce_task.h"
 #include "led_task.h"
-#include "bldc_control.h"
+#include "bldc_ctrl.h"
 
 TimesilceTaskObj obj_led_task;
-TimesilceTaskObj obj_bldc_control_task;
+TimesilceTaskObj obj_bldc_ctrl_task;
 
 static void peripheral_init(void);
 
@@ -15,12 +15,12 @@ int main(void)
     peripheral_init();
 
     led_init();
-    timeslice_task_init(&obj_led_task, led_task, 1, US_TO_TICK(500000));
+    timeslice_task_init(&obj_led_task, led_task, 1, US_TO_TICK(LED_TASK_INTERVAL));
     timeslice_task_add(&obj_led_task);
 
-    bldc_control_init();
-    timeslice_task_init(&obj_bldc_control_task, bldc_control_task, 1, US_TO_TICK(100));
-    timeslice_task_add(&obj_bldc_control_task);
+    bldc_ctrl_init();
+    timeslice_task_init(&obj_bldc_ctrl_task, bldc_ctrl_task, 1, US_TO_TICK(BLDC_CTRL_TASK_INTERVAL));
+    timeslice_task_add(&obj_bldc_ctrl_task);
 
     while(1)
     {
@@ -61,7 +61,7 @@ static void peripheral_init(void)
     GPIO_InitStruct.GPIO_Mode  = GPIO_Mode_Out_PP;
     GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(LED_PIN_PORT, &GPIO_InitStruct);
-    LED_PIN_PORT->BSHR = LED_PIN;
+    LED_PIN_PORT->BSHR = LED_PIN; // led on
 
     // opama init
     GPIO_InitStruct.GPIO_Pin  = GPIO_Pin_5;
@@ -73,7 +73,7 @@ static void peripheral_init(void)
     GPIO_InitStruct.GPIO_Pin  = GPIO_Pin_4 | GPIO_Pin_3 | GPIO_Pin_2;
     GPIO_InitStruct.GPIO_Mode = GPIO_Mode_IPU;
     GPIO_Init(GPIOA, &GPIO_InitStruct);
-    OPA->CR = 0x01;
+    OPA->CR = 0x0000; // not select opa
     
     // opama output exit init
     GPIO_EXTILineConfig(GPIO_PortSourceGPIOA, GPIO_PinSource2);
@@ -96,9 +96,9 @@ static void peripheral_init(void)
     GPIO_Init(PHASE_B_GPIO_PORT_LOW, &GPIO_InitStruct);
     GPIO_InitStruct.GPIO_Pin   = PHASE_C_GPIO_LOW;
     GPIO_Init(PHASE_C_GPIO_PORT_LOW, &GPIO_InitStruct);
-    PHASE_A_GPIO_PORT_LOW->BSHR = PHASE_A_GPIO_LOW;
-    PHASE_B_GPIO_PORT_LOW->BSHR = PHASE_B_GPIO_LOW;
-    PHASE_C_GPIO_PORT_LOW->BSHR = PHASE_C_GPIO_LOW;
+    PHASE_A_GPIO_PORT_LOW->BCR = PHASE_A_GPIO_LOW;
+    PHASE_B_GPIO_PORT_LOW->BCR = PHASE_B_GPIO_LOW;
+    PHASE_C_GPIO_PORT_LOW->BCR = PHASE_C_GPIO_LOW;
 
     // phase upper pin init
     GPIO_InitStruct.GPIO_Pin   = PHASE_A_GPIO_HIGH;
@@ -115,7 +115,7 @@ static void peripheral_init(void)
     TIM_DeInit(TIM1);
     TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
 #warning "TODO"
-    TIM_TimeBaseInitStructure.TIM_Period            = 3000 - 1;
+    TIM_TimeBaseInitStructure.TIM_Period            = BLDC_DUTY_MAX - 1;
     TIM_TimeBaseInitStructure.TIM_Prescaler         = 0;
     TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up;
