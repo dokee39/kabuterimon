@@ -131,29 +131,15 @@ static void peripheral_init(void)
     TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCNIdleState_Reset;
     TIM_OCInitStructure.TIM_Pulse = 0;
     TIM_OC1Init(TIM1, &TIM_OCInitStructure);
-    TIM_OCInitStructure.TIM_Pulse = 0;
     TIM_OC2Init(TIM1, &TIM_OCInitStructure);
-    TIM_OCInitStructure.TIM_Pulse = 0;
     TIM_OC3Init(TIM1, &TIM_OCInitStructure);
-    TIM_OCInitStructure.TIM_Pulse = 0;
-    TIM_OC4Init(TIM1, &TIM_OCInitStructure);
-    TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Enable);
-    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Enable);
-    TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Enable);
+    TIM_OC1PreloadConfig(TIM1, TIM_OCPreload_Disable);
+    TIM_OC2PreloadConfig(TIM1, TIM_OCPreload_Disable);
+    TIM_OC3PreloadConfig(TIM1, TIM_OCPreload_Disable);
     TIM_OC1FastConfig(TIM1, TIM_OCFast_Disable);
     TIM_OC2FastConfig(TIM1, TIM_OCFast_Disable);
     TIM_OC3FastConfig(TIM1, TIM_OCFast_Disable);
     // TIM_CCPreloadControl(TIM1, ENABLE);
-    TIM_BDTRStructInit(&TIM_BDTRInitStructure);
-    TIM_BDTRInitStructure.TIM_OSSIState       = TIM_OSSIState_Disable;
-    TIM_BDTRInitStructure.TIM_OSSRState       = TIM_OSSRState_Disable;
-    TIM_BDTRInitStructure.TIM_LOCKLevel       = TIM_LOCKLevel_OFF;
-#warning "TODO"
-    TIM_BDTRInitStructure.TIM_DeadTime        = 30;
-    TIM_BDTRInitStructure.TIM_Break           = TIM_Break_Disable;
-    TIM_BDTRInitStructure.TIM_BreakPolarity   = TIM_BreakPolarity_High;
-    TIM_BDTRInitStructure.TIM_AutomaticOutput = TIM_AutomaticOutput_Disable;
-    TIM_BDTRConfig(TIM1, &TIM_BDTRInitStructure);
     TIM_ITConfig(TIM1, TIM_IT_Break, DISABLE);
     TIM_ITConfig(TIM1, TIM_IT_Update, DISABLE);
     TIM_ITConfig(TIM1, TIM_IT_Trigger, DISABLE);
@@ -161,9 +147,6 @@ static void peripheral_init(void)
     TIM_CCxCmd(TIM1, TIM_Channel_1, TIM_CCx_Enable);
     TIM_CCxCmd(TIM1, TIM_Channel_2, TIM_CCx_Enable);
     TIM_CCxCmd(TIM1, TIM_Channel_3, TIM_CCx_Enable);
-    // TIM_CCxNCmd(TIM1, TIM_Channel_1, TIM_CCxN_Enable);
-    // TIM_CCxNCmd(TIM1, TIM_Channel_2, TIM_CCxN_Enable);
-    // TIM_CCxNCmd(TIM1, TIM_Channel_3, TIM_CCxN_Enable);
     TIM_Cmd(TIM1, ENABLE);
 #warning "set duty = 0"
     TIM_CtrlPWMOutputs(TIM1, ENABLE);
@@ -219,18 +202,18 @@ static void peripheral_init(void)
     NVIC_EnableIRQ(TIM2_IRQn);
     TIM_Cmd(TIM2, ENABLE);
 
-    // RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE );
-    // TIM_TimeBaseInitStructure.TIM_Period            = 0xFFFF;
-    // TIM_TimeBaseInitStructure.TIM_Prescaler         = (SystemCoreClock / 2 /1000000) - 1;
-    // TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
-    // TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up;
-    // TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
-    // TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
-    // TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-    // TIM_ITConfig(TIM3,TIM_IT_Update, ENABLE);
-    // NVIC_SetPriority(TIM3_IRQn, 0x00);
-    // NVIC_EnableIRQ(TIM3_IRQn);
-    // TIM_Cmd(TIM3, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE );
+    TIM_TimeBaseInitStructure.TIM_Period            = 0xFFFF;
+    TIM_TimeBaseInitStructure.TIM_Prescaler         = SystemCoreClock / (1000000 / 10) * TIM_CNT_PERIOD_1_10_US - 1;
+    TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
+    TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up;
+    TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
+    TIM_TimeBaseInit(TIM3, &TIM_TimeBaseInitStructure);
+    TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+    TIM_ITConfig(TIM3,TIM_IT_Update, ENABLE);
+    NVIC_SetPriority(TIM3_IRQn, 0x00);
+    NVIC_EnableIRQ(TIM3_IRQn);
+    TIM_Cmd(TIM3, ENABLE);
 
     // RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE );
     // TIM_TimeBaseInitStructure.TIM_Period            = 0xFFFF;
