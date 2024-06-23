@@ -9,18 +9,18 @@
  *
  */
 
-#include "timesilce_task.h"
+#include "timeslice_task.h"
 
 static LIST_HEAD(timeslice_task_list);
 
 void timeslice_exec(void)
 {
     ListObj *node;
-    TimesilceTaskObj *task;
+    TimesliceTaskObj *task;
 
     list_for_each(node, &timeslice_task_list)
     {
-        task = list_entry(node, TimesilceTaskObj, timeslice_task_list);
+        task = list_entry(node, TimesliceTaskObj, timeslice_task_list);
         if (task->is_run == TASK_RUN)
         {
             task->task_hdl();
@@ -32,11 +32,11 @@ void timeslice_exec(void)
 void timeslice_tick(void)
 {
     ListObj *node;
-    TimesilceTaskObj *task;
+    TimesliceTaskObj *task;
 
     list_for_each(node, &timeslice_task_list)
     {
-        task = list_entry(node, TimesilceTaskObj, timeslice_task_list);
+        task = list_entry(node, TimesliceTaskObj, timeslice_task_list);
         if (task->timer != 0)
         {
             task->timer--;
@@ -54,7 +54,7 @@ unsigned int timeslice_get_task_num(void)
     return list_len(&timeslice_task_list);
 }
 
-void timeslice_task_init(TimesilceTaskObj *obj, void (*task_hdl)(void), unsigned int id, unsigned int timeslice_len)
+void timeslice_task_init(TimesliceTaskObj *obj, void (*task_hdl)(void), unsigned int id, unsigned int timeslice_len)
 {
     obj->id = id;
     obj->is_run = TASK_STOP;
@@ -63,12 +63,12 @@ void timeslice_task_init(TimesilceTaskObj *obj, void (*task_hdl)(void), unsigned
     obj->timeslice_len = timeslice_len;
 }
 
-void timeslice_task_add(TimesilceTaskObj *obj)
+void timeslice_task_add(TimesliceTaskObj *obj)
 {
     list_insert_before(&timeslice_task_list, &obj->timeslice_task_list);
 }
 
-void timeslice_task_del(TimesilceTaskObj *obj)
+void timeslice_task_del(TimesliceTaskObj *obj)
 {
     if (timeslice_task_isexist(obj))
         list_remove(&obj->timeslice_task_list);
@@ -76,15 +76,15 @@ void timeslice_task_del(TimesilceTaskObj *obj)
         return;
 }
 
-unsigned char timeslice_task_isexist(TimesilceTaskObj *obj)
+unsigned char timeslice_task_isexist(TimesliceTaskObj *obj)
 {
     unsigned char isexist = 0;
     ListObj *node;
-    TimesilceTaskObj *task;
+    TimesliceTaskObj *task;
 
     list_for_each(node, &timeslice_task_list)
     {
-        task = list_entry(node, TimesilceTaskObj, timeslice_task_list);
+        task = list_entry(node, TimesliceTaskObj, timeslice_task_list);
         if (obj->id == task->id)
             isexist = 1;
     }
@@ -92,7 +92,7 @@ unsigned char timeslice_task_isexist(TimesilceTaskObj *obj)
     return isexist;
 }
 
-unsigned int timeslice_get_task_timeslice_len(TimesilceTaskObj *obj)
+unsigned int timeslice_get_task_timeslice_len(TimesliceTaskObj *obj)
 {
     return obj->timeslice_len;
 }

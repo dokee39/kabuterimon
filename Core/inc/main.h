@@ -5,10 +5,10 @@
 
 #define SYSTICK_PERIOD_US       (100)
 #define US_TO_TICK(t)           ((t) / SYSTICK_PERIOD_US)
-#define TIM_CNT_PERIOD_1_10_US  (1)
-#define US_TO_CNT(t)            ((t) * 10 / TIM_CNT_PERIOD_1_10_US) // t < 6000
+#define TIM_CNT_PERIOD_1_10_US  (5)
+#define US_TO_CNT(t)            ((t) * 10 / TIM_CNT_PERIOD_1_10_US)
 
-#define LED_TASK_INTERVAL       (500000)
+#define LED_TASK_INTERVAL       (250000)
 #define BLDC_CTRL_TASK_INTERVAL (100)
 
 #define LED_PIN                 GPIO_Pin_6
@@ -38,9 +38,9 @@
 #define REG_OFF                 BCR
 
 #define OPA_CHANNEL             (OPA->CR)
-#define OPA_SELECT_U            (0x0050)
+#define OPA_SELECT_U            (0x0001)
 #define OPA_SELECT_V            (0x0010)
-#define OPA_SELECT_W            (0x0001)
+#define OPA_SELECT_W            (0x0050)
 #define OPA_SELECT_NONE         (0x0000)
 
 #endif 

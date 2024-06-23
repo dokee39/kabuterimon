@@ -6,10 +6,10 @@
 #define ABS(x)       ((x) < 0 ? -(x) : (x))
 
 typedef struct {
+    int32_t value;
     int32_t input;
     int32_t input_min;
     int32_t input_max;
-    int32_t value;
     int32_t value_min;
     int32_t value_max;
 } ramp_int32_t;

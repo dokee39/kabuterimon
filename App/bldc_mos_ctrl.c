@@ -1,18 +1,28 @@
 #include <stdlib.h>
 #include "bldc_mos_ctrl.h"
 
-const bldc_six_step_t six_step[6] = {
-    { {0xFF, 0x00, 0x00}, {0x00, 0x00, 0xFF}, PHASE_V },
-    { {0xFF, 0x00, 0x00}, {0x00, 0xFF, 0x00}, PHASE_W },
-    { {0x00, 0x00, 0xFF}, {0x00, 0xFF, 0x00}, PHASE_U },
-    { {0x00, 0x00, 0xFF}, {0xFF, 0x00, 0x00}, PHASE_V },
-    { {0x00, 0xFF, 0x00}, {0xFF, 0x00, 0x00}, PHASE_W },
-    { {0x00, 0xFF, 0x00}, {0x00, 0x00, 0xFF}, PHASE_U },
+#define offset_of(type, member) (unsigned int) & ((type *)0)->member
+
+#define CHxCVR(hTIM, PHASE) (*(uint16_t *)((char *)hTIM + CHxCVR_OFFSET[PHASE]))
+
+static const unsigned int CHxCVR_OFFSET[3] = {
+    offset_of(TIM_TypeDef, CH1CVR),
+    offset_of(TIM_TypeDef, CH2CVR),
+    offset_of(TIM_TypeDef, CH3CVR),
 };
 
-static void bldc_update_lower(bldc_ctrl_t *ctrl);
+static const uint16_t CCER_SET[4] = { 0x055D, 0x05D5, 0x0D55, 0x0555 };
 
-void bldc_change_phase(bldc_ctrl_t *ctrl)
+const bldc_six_step_t six_step[6] = {
+    { PHASE_U, PHASE_W, PHASE_V },
+    { PHASE_U, PHASE_V, PHASE_W },
+    { PHASE_W, PHASE_V, PHASE_U },
+    { PHASE_W, PHASE_U, PHASE_V },
+    { PHASE_V, PHASE_U, PHASE_W },
+    { PHASE_V, PHASE_W, PHASE_U },
+};
+
+void bldc_mos_change_phase(bldc_ctrl_t *ctrl)
 {
     ctrl->step += ctrl->dir == CW ? 1 : -1;
     if (ctrl->step > 5) {
@@ -21,37 +31,25 @@ void bldc_change_phase(bldc_ctrl_t *ctrl)
         ctrl->step = 5;
     }
 
-    bldc_close_upper_lower(ctrl);
-    bldc_update_upper_duty(ctrl);
-    bldc_update_lower(ctrl);
+    ctrl->hTIM_pwm->CH1CVR = 0;
+    ctrl->hTIM_pwm->CH2CVR = 0;
+    ctrl->hTIM_pwm->CH3CVR = 0;
+    ctrl->hTIM_pwm->CCER = CCER_SET[six_step[ctrl->step].float_phase];
+    CHxCVR(ctrl->hTIM_pwm, six_step[ctrl->step].upper_on_phase) = ctrl->duty.value;
 }
 
-void bldc_close_upper_lower(bldc_ctrl_t *ctrl)
+void bldc_mos_update_duty(bldc_ctrl_t * ctrl)
 {
-    ctrl->periph.hTIM_pwm->CH1CVR = 0;
-    ctrl->periph.hTIM_pwm->CH2CVR = 0;
-    ctrl->periph.hTIM_pwm->CH3CVR = 0;
-
-    ctrl->periph.hGPIO_Port_UL->REG_OFF = ctrl->periph.GPIO_Pin_UL;
-    ctrl->periph.hGPIO_Port_VL->REG_OFF = ctrl->periph.GPIO_Pin_VL;
-    ctrl->periph.hGPIO_Port_WL->REG_OFF = ctrl->periph.GPIO_Pin_WL;
+    CHxCVR(ctrl->hTIM_pwm, six_step[ctrl->step].upper_on_phase) = ctrl->duty.value;
+    CHxCVR(ctrl->hTIM_pwm, six_step[ctrl->step].lower_on_phase) = 0;
+    CHxCVR(ctrl->hTIM_pwm, six_step[ctrl->step].float_phase) = 0;
 }
 
-void bldc_update_upper_duty(bldc_ctrl_t *ctrl)
+void bldc_mos_stop(bldc_ctrl_t *ctrl) 
 {
-#warning "brake"
-    ctrl->periph.hTIM_pwm->CH1CVR = (uint16_t)(ctrl->duty.value) & six_step[ctrl->step].upper_phase_duty_mask[PHASE_U];
-    ctrl->periph.hTIM_pwm->CH2CVR = (uint16_t)(ctrl->duty.value) & six_step[ctrl->step].upper_phase_duty_mask[PHASE_V];
-    ctrl->periph.hTIM_pwm->CH3CVR = (uint16_t)(ctrl->duty.value) & six_step[ctrl->step].upper_phase_duty_mask[PHASE_W];
-}
-
-void bldc_update_lower(bldc_ctrl_t *ctrl)
-{
-    ctrl->periph.hGPIO_Port_UL->REG_OFF = ctrl->periph.GPIO_Pin_UL & (~six_step[ctrl->step].lower_phase_output_mask[PHASE_U]);
-    ctrl->periph.hGPIO_Port_VL->REG_OFF = ctrl->periph.GPIO_Pin_VL & (~six_step[ctrl->step].lower_phase_output_mask[PHASE_V]);
-    ctrl->periph.hGPIO_Port_WL->REG_OFF = ctrl->periph.GPIO_Pin_WL & (~six_step[ctrl->step].lower_phase_output_mask[PHASE_W]);
-    ctrl->periph.hGPIO_Port_UL->REG_ON = ctrl->periph.GPIO_Pin_UL & six_step[ctrl->step].lower_phase_output_mask[PHASE_U];
-    ctrl->periph.hGPIO_Port_VL->REG_ON = ctrl->periph.GPIO_Pin_VL & six_step[ctrl->step].lower_phase_output_mask[PHASE_V];
-    ctrl->periph.hGPIO_Port_WL->REG_ON = ctrl->periph.GPIO_Pin_WL & six_step[ctrl->step].lower_phase_output_mask[PHASE_W];
+    ctrl->hTIM_pwm->CH1CVR = 0;
+    ctrl->hTIM_pwm->CH2CVR = 0;
+    ctrl->hTIM_pwm->CH3CVR = 0;
+    ctrl->hTIM_pwm->CCER = CCER_SET[PHASE_NONE];
 }
 

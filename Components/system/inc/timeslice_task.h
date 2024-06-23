@@ -18,7 +18,7 @@ typedef enum {
     TASK_RUN
 } IsTaskRun;
 
-typedef struct timesilce_task
+typedef struct timeslice_task
 {
     unsigned int id;
     void (*task_hdl)(void);
@@ -26,15 +26,15 @@ typedef struct timesilce_task
     unsigned int timer;
     unsigned int timeslice_len;
     ListObj timeslice_task_list;
-} TimesilceTaskObj;
+} TimesliceTaskObj;
 
 void timeslice_exec(void);
 void timeslice_tick(void);
-void timeslice_task_init(TimesilceTaskObj* obj, void (*task_hdl)(void), unsigned int id, unsigned int timeslice_len);
-void timeslice_task_add(TimesilceTaskObj* obj);
-void timeslice_task_del(TimesilceTaskObj* obj);
-unsigned int timeslice_get_task_timeslice_len(TimesilceTaskObj* obj);
+void timeslice_task_init(TimesliceTaskObj* obj, void (*task_hdl)(void), unsigned int id, unsigned int timeslice_len);
+void timeslice_task_add(TimesliceTaskObj* obj);
+void timeslice_task_del(TimesliceTaskObj* obj);
+unsigned int timeslice_get_task_timeslice_len(TimesliceTaskObj* obj);
 unsigned int timeslice_get_task_num(void);
-unsigned char timeslice_task_isexist(TimesilceTaskObj* obj);
+unsigned char timeslice_task_isexist(TimesliceTaskObj* obj);
 
 #endif

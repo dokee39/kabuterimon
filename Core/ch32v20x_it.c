@@ -1,11 +1,9 @@
 #include "ch32v20x_it.h"
 #include "ch32v20x.h"
-#include "timesilce_task.h"
-// #include "motor.h"
-// #include "control.h"
-// #include "battery.h"
-// #include "led.h"
-// #include "pwm_input.h"
+#include "timeslice_task.h"
+#include "bldc_callback.h"
+
+extern bldc_ctrl_t ctrl;
 
 void NMI_Handler(void)       __attribute__((interrupt("WCH-Interrupt-fast")));
 void SysTick_Handler(void)   __attribute__((interrupt("WCH-Interrupt-fast")));
@@ -22,7 +20,6 @@ void NMI_Handler(void)
 
 void SysTick_Handler(void)
 {
-#warning "after init"
     timeslice_tick();
     timeslice_exec();
 
@@ -31,19 +28,10 @@ void SysTick_Handler(void)
 
 void HardFault_Handler(void)
 {
-//     uint32_t temp_reg[3];
-//     motor_stop(BLDC_BRAKE_DUTY);
-//     printf("HardFault_Handler\r\n");
-//     temp_reg[0] = __get_MCAUSE();
-//     temp_reg[1] = __get_MTVAL();
-//     temp_reg[2] = __get_MEPC();
-//     printf("mcause:%0x\r\n",temp_reg[0]);
-//     printf("mtval:%0x\r\n",temp_reg[1]);
-//     printf("mepc:%0x\r\n",temp_reg[2]);
-#warning "operations"
+    __disable_irq();
+    TIM1->CCER = 0;
     while (1)
     {
-
     }
 }
 
@@ -54,15 +42,22 @@ void TIM2_IRQHandler(void)
 
 void TIM3_IRQHandler(void)
 {
-    
+    if (OPA_CHANNEL == OPA_SELECT_NONE) {
+        bldc_change_phase_callback(&ctrl);
+    } else {
+        bldc_time_out_callback(&ctrl);
+    }
+    TIM3->INTFR = 0;
 }
 
 void TIM4_IRQHandler(void)
 {
     
+    TIM4->INTFR = 0;
 }
 
 void EXTI2_IRQHandler(void)
 {
-    
+    bldc_zero_cross_callback(&ctrl);
+    EXTI->INTFR = ctrl.GPIO_Pin_EXTI;
 }
