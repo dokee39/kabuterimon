@@ -112,7 +112,7 @@ static void peripheral_init(void)
     TIM_DeInit(TIM1);
     GPIO_PinRemapConfig(GPIO_PartialRemap_TIM1, ENABLE);
     TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
-    TIM_TimeBaseInitStructure.TIM_Period            = BLDC_DUTY_MAX - 1;
+    TIM_TimeBaseInitStructure.TIM_Period            = BLDC_DUTY_MAX + BLDC_DUTY_CHARGE;
     TIM_TimeBaseInitStructure.TIM_Prescaler         = 0;
     TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up;
@@ -214,7 +214,7 @@ static void peripheral_init(void)
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE );
     TIM_TimeBaseInitStructure.TIM_Period            = 0xFFFF;
-    TIM_TimeBaseInitStructure.TIM_Prescaler         = SystemCoreClock / ((1000000 / 10) * TIM_CNT_PERIOD_1_10_US) - 1;
+    TIM_TimeBaseInitStructure.TIM_Prescaler         = SystemCoreClock / (1000000 * 10 / TIM_CNT_PERIOD_1_10_US) - 1;
     TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
     TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up;
     TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;

@@ -3,7 +3,7 @@
 
 #define offset_of(type, member) (unsigned int) & ((type *)0)->member
 
-#define CHxCVR(hTIM, PHASE) (*(uint16_t *)((char *)hTIM + CHxCVR_OFFSET[PHASE]))
+#define CHxCVR(hTIM, PHASE) (*(uint16_t *)((char *)(hTIM) + CHxCVR_OFFSET[(PHASE)]))
 
 static const unsigned int CHxCVR_OFFSET[3] = {
     offset_of(TIM_TypeDef, CH1CVR),

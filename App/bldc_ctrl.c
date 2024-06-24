@@ -28,14 +28,13 @@ void bldc_ctrl_init(void)
 }
 
 #warning "DEBUD"
-uint32_t duty = 500;
+uint32_t duty = 300;
 
 void bldc_ctrl_task(void)
 {
     if (duty < ctrl.duty.value_min) {
         ctrl.status = IDLE;
     } else if (ctrl.change_phase_fail_cnt > BLDC_CHANGE_PHASE_CNT_FAIL) {
-#warning "DEBUD"
         ctrl.status = STALL;
     } else if (ctrl.change_phase_ok_cnt < BLDC_CHANGE_PHASE_CNT_DRAG) {
         ctrl.status = DRAG;
@@ -46,7 +45,6 @@ void bldc_ctrl_task(void)
             bldc_tim_cnt_enable(&ctrl, ctrl.step_cnt_sum_filtered / BLDC_CNT_MAX_ADV);
         }
     } else {
-#warning "DEBUD"
         ctrl.status = CLOSED_LOOP;
         if (ctrl.status_prev == DRAG) {
             #warning "calc speed"
@@ -69,7 +67,7 @@ void bldc_ctrl_task(void)
             break;
         case CLOSED_LOOP:
 #warning "DEBUD"
-            ctrl.duty.value = 100;
+            ctrl.duty.value = duty;
             bldc_mos_update_duty(&ctrl);
             break;
         case STALL:

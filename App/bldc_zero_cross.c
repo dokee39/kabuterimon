@@ -4,9 +4,15 @@ static const uint16_t OPA_SELECT[4] = { OPA_SELECT_U, OPA_SELECT_V, OPA_SELECT_W
 
 void bldc_zero_cross_switch(bldc_ctrl_t *ctrl)
 {
+    #warning "edge delect"
     OPA_CHANNEL = OPA_SELECT[six_step[ctrl->step].float_phase];
-    EXTI->RTENR = ctrl->GPIO_Pin_EXTI;
-    EXTI->FTENR = ctrl->GPIO_Pin_EXTI;
+    if (ctrl->step % 2) {
+        EXTI->RTENR = 0;
+        EXTI->FTENR = ctrl->GPIO_Pin_EXTI;
+    } else {
+        EXTI->FTENR = 0;
+        EXTI->RTENR = ctrl->GPIO_Pin_EXTI;
+    }
     EXTI->INTENR |= ctrl->GPIO_Pin_EXTI;
 }
 
