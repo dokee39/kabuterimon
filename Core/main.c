@@ -17,8 +17,8 @@ int main(void)
     peripheral_init();
 
     led_init();
-    timeslice_task_init(&obj_led_task, led_task, 1, US_TO_TICK(LED_TASK_INTERVAL));
-    timeslice_task_add(&obj_led_task);
+    // timeslice_task_init(&obj_led_task, led_task, 1, US_TO_TICK(LED_TASK_INTERVAL));
+    // timeslice_task_add(&obj_led_task);
 
     bldc_ctrl_init();
     timeslice_task_init(&obj_bldc_ctrl_task, bldc_ctrl_task, 1, US_TO_TICK(BLDC_CTRL_TASK_INTERVAL));

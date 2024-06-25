@@ -66,6 +66,7 @@ out/
 # others
 .aux/
 .cache/
+.clangd
 .DS_Store
 .mxproject
 .nvim.lua

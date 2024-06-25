@@ -35,7 +35,7 @@ void bldc_ctrl_task(void)
     if (duty < ctrl.duty.value_min) {
         ctrl.status = IDLE;
     } else if (ctrl.change_phase_fail_cnt > BLDC_CHANGE_PHASE_CNT_FAIL) {
-        ctrl.status = STALL;
+        // ctrl.status = STALL;
     } else if (ctrl.change_phase_ok_cnt < BLDC_CHANGE_PHASE_CNT_DRAG) {
         ctrl.status = DRAG;
         if (ctrl.status_prev == IDLE) {
@@ -64,6 +64,12 @@ void bldc_ctrl_task(void)
 #warning "DEBUD"
             ctrl.duty.value = ctrl.duty.value_min;
             bldc_mos_update_duty(&ctrl);
+            uint32_t sum = 0;
+        for (int i = 0; i < 6; i++) {
+            sum += ctrl.step_cnt[i];
+        }
+        ctrl.step_cnt_sum_filtered = ctrl.step_cnt_sum = sum;
+        
             break;
         case CLOSED_LOOP:
 #warning "DEBUD"

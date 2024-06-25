@@ -9,7 +9,7 @@
 #define BLDC_SPEED_MODE            SPEED_OPEN_LOOP
 
 #warning "DEBUD"
-#define BLDC_DUTY_MIN              (100)
+#define BLDC_DUTY_MIN              (150)
 #define BLDC_DUTY_MAX              (2000)
 #define BLDC_DUTY_CHARGE           (10)
 #define BLDC_DUTY_INC_MIN          (-10)
@@ -18,16 +18,16 @@
 #define BLDC_CHANGE_PHASE_CNT_FAIL (200)
 #define BLDC_CHANGE_PHASE_CNT_DRAG (50)
 
-#define BLDC_CNT_MIN_ADV           32
+#define BLDC_CNT_MIN_ADV           24
 #define BLDC_CNT_MAX_ADV           8
 #define BLDC_CNT_ZERO_CROSS_ADV    12
 
-#define BLDC_DRAG_CNT_SUM_START    US_TO_CNT(250000)
+#define BLDC_DRAG_CNT_SUM_START    US_TO_CNT(200000)
 #if BLDC_DRAG_CNT_SUM_START / BLDC_CNT_MAX_ADV > 65535
 #error note that (BLDC_DRAG_CNT_SUM_START / BLDC_CNT_MAX_ADV) should not bigger than 65535
 #endif
 #define BLDC_DRAG_CNT_SUM_END      US_TO_CNT(25000)
-#define BLDC_DRAG_CNT_DEC_ADV      24
+#define BLDC_DRAG_CNT_DEC_ADV      36
 
 
 typedef enum {
