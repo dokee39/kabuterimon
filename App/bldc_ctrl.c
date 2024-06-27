@@ -12,6 +12,7 @@ void bldc_ctrl_init(void)
 {
     ctrl.hTIM_pwm      = TIM1;
     ctrl.hTIM_cnt      = TIM3;
+    ctrl.hTIM_input    = TIM2;
     ctrl.GPIO_Pin_EXTI = EXTI_GPIO_PIN;
 
     ctrl.status      = IDLE;
@@ -27,12 +28,10 @@ void bldc_ctrl_init(void)
     bldc_tim_cnt_disable(&ctrl);
 }
 
-#warning "DEBUD"
-uint32_t duty = 300;
-
 void bldc_ctrl_task(void)
 {
-    if (duty < ctrl.duty.value_min) {
+    ctrl.duty.value = 300;
+    if (ctrl.duty.value < ctrl.duty.value_min) {
         ctrl.status = IDLE;
     } else if (ctrl.change_phase_fail_num > BLDC_CHANGE_PHASE_NUM_FAIL) {
         // ctrl.status = STALL;
@@ -45,7 +44,7 @@ void bldc_ctrl_task(void)
             bldc_tim_cnt_disable(&ctrl);
         }
     } else {
-        ctrl.status = CLOSED_LOOP;
+        // ctrl.status = CLOSED_LOOP;
         if (ctrl.status_prev == DRAG) {
             #warning "calc speed"
         }
@@ -78,7 +77,6 @@ void bldc_ctrl_task(void)
             break;
         case CLOSED_LOOP:
 #warning "DEBUD"
-            ctrl.duty.value = duty;
             bldc_mos_update_duty(&ctrl);
             break;
         case STALL:

@@ -20,8 +20,8 @@
 
 #define BLDC_STEP_CNT_MIN_ADV      24
 
-#define BLDC_TICK_ALIGNMEN     US_TO_TICK(50000)
-#define BLDC_STEP_CNT_DRAG         US_TO_CNT(200)
+#define BLDC_TICK_ALIGNMEN         US_TO_TICK(50000)
+#define BLDC_STEP_CNT_DRAG         US_TO_CNT(250)
 #define BLDC_STEP_CNT_MAX          US_TO_CNT(2000)
 #if BLDC_STEP_CNT_MAX > 65535
 #error
@@ -56,6 +56,7 @@ typedef enum {
 typedef struct bldc_ctrl_ {
     TIM_TypeDef *hTIM_pwm;
     TIM_TypeDef *hTIM_cnt;
+    TIM_TypeDef *hTIM_input;
 
     uint16_t GPIO_Pin_EXTI;
 

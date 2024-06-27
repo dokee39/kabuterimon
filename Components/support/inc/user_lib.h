@@ -16,6 +16,7 @@ typedef struct {
 
 void ramp_int32_init(ramp_int32_t *ramp, int32_t init_value, int32_t input_min, int32_t input_max, int32_t value_min, int32_t value_max);
 int32_t ramp_int32_calc(ramp_int32_t *ramp, int32_t input);
+void ramp_int32_update(ramp_int32_t *ramp, int32_t set);
 
 #endif
 
