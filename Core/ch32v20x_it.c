@@ -37,16 +37,16 @@ void HardFault_Handler(void)
 
 void TIM2_IRQHandler(void)
 {
-    // if (TIM_GetITStatus(TIM2, TIM_FLAG_CC1) != RESET)
-    // {
-    //     bldc_pwm_input_callback(&ctrl);
-    //     TIM2->INTFR = ~TIM_FLAG_CC1;
-    // }
-    // if (TIM_GetITStatus(TIM2, TIM_FLAG_CC4) != RESET)
-    // {
-    //     bldc_pwm_input_timeout_callback(&ctrl);
-    //     TIM2->INTFR = ~TIM_FLAG_CC4;
-    // }
+    if (TIM_GetITStatus(TIM2, TIM_FLAG_CC1) != RESET)
+    {
+        bldc_pwm_input_callback(&ctrl);
+        TIM2->INTFR = ~TIM_FLAG_CC1;
+    }
+    if (TIM_GetITStatus(TIM2, TIM_FLAG_CC4) != RESET)
+    {
+        bldc_pwm_input_timeout_callback(&ctrl);
+        TIM2->INTFR = ~TIM_FLAG_CC4;
+    }
 }
 
 void TIM3_IRQHandler(void)

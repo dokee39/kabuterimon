@@ -32,12 +32,12 @@ void bldc_zero_cross_callback(bldc_ctrl_t *ctrl)
         case CLOSED_LOOP:
             ctrl->change_phase_fail_num = 0;
             ctrl->change_phase_ok_num++;
-            ctrl->step_cnt = (ctrl->step_cnt * 63 + ctrl->hTIM_cnt->CNT) / 64;
+            ctrl->step_cnt = (ctrl->step_cnt * 31 + ctrl->hTIM_cnt->CNT) / 32;
             bldc_zero_cross_disable(ctrl);
             if (ctrl->status == DRAG) {
                 bldc_tim_cnt_enable(ctrl, BLDC_STEP_CNT_DRAG);
             } else {
-                bldc_tim_cnt_enable(ctrl, ctrl->step_cnt);
+                bldc_tim_cnt_enable(ctrl, ctrl->step_cnt / 2);
             }
             break;
         default:
@@ -54,7 +54,8 @@ void bldc_time_out_callback(bldc_ctrl_t *ctrl)
         case CLOSED_LOOP:
             ctrl->change_phase_fail_num++;
             ctrl->step_cnt = (ctrl->step_cnt * 63 + ctrl->hTIM_cnt->CNT) / 64;
-            bldc_zero_cross_disable(ctrl);
+            bldc_mos_change_phase(ctrl);
+            bldc_zero_cross_switch(ctrl);
             bldc_tim_cnt_enable(ctrl, BLDC_STEP_CNT_MAX);
             break;
         default:
@@ -67,6 +68,7 @@ void bldc_pwm_input_callback(bldc_ctrl_t *ctrl)
     uint32_t period = TIM_GetCapture1(ctrl->hTIM_input) + 1;
     uint32_t high   = TIM_GetCapture2(ctrl->hTIM_input) + 1;
     uint32_t freq   = 1000000 / period;
+    uint32_t duty   = 0;
 
     if( (freq > 20) && (freq < 400) && (high < 3000) && (high > 1000) ) {
         if(high >= 2000) {
@@ -74,11 +76,16 @@ void bldc_pwm_input_callback(bldc_ctrl_t *ctrl)
         } else {
             high -= 1000;
         }
+        duty = high * BLDC_DUTY_MAX / 1000;
+        if (duty < ctrl->duty.value_min && ctrl->status == IDLE) {
+            ctrl->duty.value = 0;
+        } else {
+            ramp_int32_update(&ctrl->duty, duty);
+        }
     } else {
-        high = 0;
+        ctrl->duty.value = 0;
     }
 
-    ramp_int32_update(&ctrl->duty, high * BLDC_DUTY_MAX / 1000);
 }
 
 void bldc_pwm_input_timeout_callback(bldc_ctrl_t *ctrl)

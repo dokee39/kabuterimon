@@ -34,17 +34,16 @@ int32_t ramp_int32_calc(ramp_int32_t *ramp, int32_t input)
 
 void ramp_int32_update(ramp_int32_t *ramp, int32_t set)
 {
+    if (set - ramp->value < ramp->input_min) {
+        set = ramp->value + ramp->input_min; 
+    } else if (set - ramp->value > ramp->input_max) {
+        set = ramp->value + ramp->input_max;
+    }
     if (set < ramp->value_min) {
         ramp->value = ramp->value_min;
     } else if (set > ramp->value_max) {
         ramp->value = ramp->value_max;
     } else {
-        if (set - ramp->value < ramp->input_min) {
-            ramp->value += ramp->input_min; 
-        } else if (set - ramp->value > ramp->input_max) {
-            ramp->value += ramp->input_max;
-        } else {
-            ramp->value = set;
-        }
+        ramp->value = set;
     }
 }

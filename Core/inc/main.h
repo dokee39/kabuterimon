@@ -5,7 +5,7 @@
 
 #define SYSTICK_PERIOD_US       (100)
 #define US_TO_TICK(t)           ((t) / SYSTICK_PERIOD_US)
-#define TIM_CNT_PERIOD_1_10_US  (1)
+#define TIM_CNT_PERIOD_1_10_US  (5)
 #define US_TO_CNT(t)            ((t) * 10 / TIM_CNT_PERIOD_1_10_US)
 
 #define LED_TASK_INTERVAL       (250000)
