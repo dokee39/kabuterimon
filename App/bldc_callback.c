@@ -3,8 +3,6 @@
 #include "bldc_zero_cross.h"
 #include "bldc_tim_cnt.h"
 #include "user_lib.h"
-#warning DEBUG
-#include "led_task.h"
 
 void bldc_change_phase_callback(bldc_ctrl_t *ctrl)
 {
@@ -22,10 +20,9 @@ void bldc_change_phase_callback(bldc_ctrl_t *ctrl)
 
 void bldc_zero_cross_callback(bldc_ctrl_t *ctrl)
 {
-    if (ctrl->mode != DRAG && ctrl->hTIM_cnt->CNT < ctrl->step_cnt / BLDC_STEP_CNT_MIN_ADV) {
+    if (ctrl->hTIM_cnt->CNT < ctrl->step_cnt / BLDC_STEP_CNT_MIN_ADV) {
         return;
     }
-    led_toggle();
     switch (ctrl->status) {
         case DRAG:
             // no break

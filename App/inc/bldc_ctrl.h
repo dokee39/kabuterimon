@@ -8,14 +8,13 @@
 #define BLDC_DIR                   CW
 #define BLDC_SPEED_MODE            SPEED_OPEN_LOOP
 
-#warning "DEBUD"
 #define BLDC_DUTY_MIN              (200)
 #define BLDC_DUTY_MAX              (2000)
 #define BLDC_DUTY_CHARGE           (10)
 #define BLDC_DUTY_INC_MIN          (-50)
 #define BLDC_DUTY_INC_MAX          (50)
 
-#define BLDC_CHANGE_PHASE_NUM_FAIL (2000)
+#define BLDC_CHANGE_PHASE_NUM_FAIL (500)
 #define BLDC_CHANGE_PHASE_NUM_DRAG (50)
 
 #define BLDC_STEP_CNT_MIN_ADV      24

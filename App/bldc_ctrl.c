@@ -46,8 +46,6 @@ void bldc_ctrl_task(void)
         ctrl.status = CLOSED_LOOP;
         if (ctrl.status_prev == DRAG) {
             ctrl.duty.value = ctrl.duty.value_min;
-            
-            #warning "calc speed"
         }
     }
 
@@ -72,12 +70,10 @@ void bldc_ctrl_task(void)
             }
             break;
         case DRAG:
-#warning "DEBUD"
             ctrl.duty.value = ctrl.duty.value_min;
             bldc_mos_update_duty(&ctrl);
             break;
         case CLOSED_LOOP:
-#warning "DEBUD"
             bldc_mos_update_duty(&ctrl);
             break;
         case STALL:
@@ -85,6 +81,9 @@ void bldc_ctrl_task(void)
             bldc_mos_stop(&ctrl);
             bldc_zero_cross_disable(&ctrl);
             bldc_tim_cnt_disable(&ctrl);
+            if (ctrl.duty.value == ctrl.duty.value_min) {
+                ctrl.status = IDLE;
+            }
             break;
         default:
             break;
