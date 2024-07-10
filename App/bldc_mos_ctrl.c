@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "bldc_mos_ctrl.h"
 
 #define offset_of(type, member) (unsigned int) & ((type *)0)->member

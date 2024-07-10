@@ -51,9 +51,7 @@ void bldc_time_out_callback(bldc_ctrl_t *ctrl)
         case CLOSED_LOOP:
             ctrl->change_phase_fail_num++;
             ctrl->step_cnt = (ctrl->step_cnt * 63 + ctrl->hTIM_cnt->CNT) / 64;
-            bldc_mos_change_phase(ctrl);
-            bldc_zero_cross_switch(ctrl);
-            bldc_tim_cnt_enable(ctrl, BLDC_STEP_CNT_MAX);
+            bldc_change_phase_callback(ctrl);
             break;
         default:
             break;
@@ -76,10 +74,14 @@ void bldc_pwm_input_callback(bldc_ctrl_t *ctrl)
         duty = high * BLDC_DUTY_MAX / 1000;
         if (duty < ctrl->duty.value_min && ctrl->status == IDLE) {
             ctrl->duty.value = 0;
+        } else if (ctrl->status == DRAG) {
+            ctrl->duty.value = ctrl->duty.value_min;
         } else {
             ramp_int32_update(&ctrl->duty, duty);
         }
     } else {
+        ctrl->status = IDLE;
+        ctrl->status_prev = IDLE;
         ctrl->duty.value = 0;
     }
 
@@ -87,6 +89,8 @@ void bldc_pwm_input_callback(bldc_ctrl_t *ctrl)
 
 void bldc_pwm_input_timeout_callback(bldc_ctrl_t *ctrl)
 {
+    ctrl->status = IDLE;
+    ctrl->status_prev = IDLE;
     ctrl->duty.value = 0;
 }
 

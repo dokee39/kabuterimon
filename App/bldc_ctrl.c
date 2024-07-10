@@ -33,6 +33,7 @@ void bldc_ctrl_task(void)
     if (ctrl.duty.value < ctrl.duty.value_min) {
         ctrl.status = IDLE;
     } else if (ctrl.change_phase_fail_num > BLDC_CHANGE_PHASE_NUM_FAIL) {
+        bldc_ctrl_param_clear(&ctrl);
         ctrl.status = STALL;
     } else if (ctrl.change_phase_ok_num < BLDC_CHANGE_PHASE_NUM_DRAG) {
         if (ctrl.status_prev == IDLE) {
@@ -77,7 +78,6 @@ void bldc_ctrl_task(void)
             bldc_mos_update_duty(&ctrl);
             break;
         case STALL:
-            bldc_ctrl_param_clear(&ctrl);
             bldc_mos_stop(&ctrl);
             bldc_zero_cross_disable(&ctrl);
             bldc_tim_cnt_disable(&ctrl);
