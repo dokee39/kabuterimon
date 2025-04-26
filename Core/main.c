@@ -9,10 +9,15 @@ TimesliceTaskObj obj_led_task;
 TimesliceTaskObj obj_bldc_ctrl_task;
 
 static void peripheral_init(void);
+static void motor_beep();
 
 int main(void)
 {
     __disable_irq();
+
+#ifdef BEEP_ON
+    motor_beep();
+#endif 
 
     peripheral_init();
 
@@ -227,19 +232,78 @@ static void peripheral_init(void)
     NVIC_SetPriority(TIM3_IRQn, 0x00);
     NVIC_EnableIRQ(TIM3_IRQn);
     TIM_Cmd(TIM3, ENABLE);
-
-    // RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE );
-    // TIM_TimeBaseInitStructure.TIM_Period            = 0xFFFF;
-    // TIM_TimeBaseInitStructure.TIM_Prescaler         = (SystemCoreClock / 2 / 1000000) - 1;
-    // TIM_TimeBaseInitStructure.TIM_ClockDivision     = TIM_CKD_DIV1;
-    // TIM_TimeBaseInitStructure.TIM_CounterMode       = TIM_CounterMode_Up;
-    // TIM_TimeBaseInitStructure.TIM_RepetitionCounter = 0;
-    // TIM_TimeBaseInit(TIM4, &TIM_TimeBaseInitStructure);
-    // TIM_ClearITPendingBit(TIM4, TIM_IT_Update);
-    // TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
-    // NVIC_SetPriority(TIM4_IRQn, 0x02);
-    // NVIC_EnableIRQ(TIM4_IRQn);
-    // TIM_Cmd(TIM4, ENABLE);
-
 }
 
+static void system_delay (uint32_t time, uint32_t num)
+{
+    SysTick->SR &= ~(1 << 0);
+    SysTick->CMP = (uint64_t)time * num;
+    SysTick->CTLR |= (1 << 4);
+    SysTick->CTLR |= (1 << 5) | (1 << 0);
+    while((SysTick->SR & (1 << 0)) != (1 << 0));
+    SysTick->CTLR &= ~(1 << 0);
+}
+
+#define system_delay_ms(time) system_delay((SystemCoreClock/8000), (time))
+
+static void motor_beep()
+{
+    uint32_t BEEP_DELAY_TIME = 250;
+    uint16_t frequency_spectrum[6] = {0, 783, 783, 1174, 1046, 783};
+    uint16_t beep_duty;
+    uint32_t match_temp;
+    uint32_t period_temp;
+    uint16_t freq_div = 0;
+    beep_duty = 100;
+
+    PHASE_A_GPIO_PORT_HIGH->CFGHR &= ~(0xf<<0);
+    PHASE_A_GPIO_PORT_HIGH->CFGHR |= (0xb<<0);
+    PHASE_B_GPIO_PORT_LOW->CFGLR  &= ~(0xf<<0);
+    PHASE_B_GPIO_PORT_LOW->CFGLR|= (0x3<<0);
+    PHASE_B_GPIO_PORT_LOW->LOW_BITREG_ON = PHASE_B_GPIO_LOW;
+    freq_div = (uint16_t)((SystemCoreClock / 2 / frequency_spectrum[1]) >> 16);                   // 多少分频
+    period_temp = (uint16_t)(SystemCoreClock / 2 / ( frequency_spectrum[1] * (freq_div + 1)));    // 周期
+    match_temp = period_temp * beep_duty / 10000;                                               // 占空比
+    TIM1->ATRLR = period_temp - 1;
+    TIM1->PSC = freq_div;
+    TIM1->CH1CVR = match_temp;
+    TIM1->CH2CVR = 0;
+    TIM1->CH3CVR = 0;
+    system_delay_ms(BEEP_DELAY_TIME);
+
+    PHASE_B_GPIO_PORT_HIGH->CFGHR &= ~(0xf<<4);
+    PHASE_B_GPIO_PORT_HIGH->CFGHR |= (0xb<<4);
+    PHASE_C_GPIO_PORT_LOW->CFGLR  &= ~(0xf<<4);
+    PHASE_C_GPIO_PORT_LOW->CFGLR |= (0x3<<4);
+    PHASE_C_GPIO_PORT_LOW->LOW_BITREG_ON = PHASE_C_GPIO_LOW;
+    freq_div = (uint16_t)((SystemCoreClock / 2 / frequency_spectrum[2]) >> 16);                   // 多少分频
+    period_temp = (uint16_t)(SystemCoreClock / 2 / ( frequency_spectrum[2] * (freq_div + 1)));    // 周期
+    match_temp = period_temp * beep_duty / 10000;                                               // 占空比
+    TIM1->ATRLR = period_temp - 1;
+    TIM1->PSC = freq_div;
+    TIM1->CH1CVR = 0;
+    TIM1->CH2CVR = match_temp;
+    TIM1->CH3CVR = 0;
+    system_delay_ms(BEEP_DELAY_TIME);
+
+    PHASE_C_GPIO_PORT_HIGH->CFGHR &= ~(0xf<<8);
+    PHASE_C_GPIO_PORT_HIGH->CFGHR |= (0xb<<8);
+    PHASE_A_GPIO_PORT_LOW->CFGLR  &= ~(0xf<<28);
+    PHASE_A_GPIO_PORT_LOW->CFGLR|= (0x3<<28);
+    PHASE_A_GPIO_PORT_LOW->LOW_BITREG_ON = PHASE_A_GPIO_LOW;
+    freq_div = (uint16_t)((SystemCoreClock / 2 / frequency_spectrum[3]) >> 16);                   // 多少分频
+    period_temp = (uint16_t)(SystemCoreClock / 2 / ( frequency_spectrum[3] * (freq_div + 1)));    // 周期
+    match_temp = period_temp * beep_duty / 10000;                                               // 占空比
+    TIM1->ATRLR = period_temp - 1;
+    TIM1->PSC = freq_div;
+    TIM1->CH1CVR = 0;
+    TIM1->CH2CVR = 0;
+    TIM1->CH3CVR = match_temp;
+    system_delay_ms(BEEP_DELAY_TIME);
+
+    TIM1->PSC = 0;
+    TIM1->ATRLR = BLDC_DUTY_MAX - 1;
+    TIM1->CH1CVR = 0;
+    TIM1->CH2CVR = 0;
+    TIM1->CH3CVR = 0;
+}

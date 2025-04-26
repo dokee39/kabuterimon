@@ -8,6 +8,8 @@
 #define TIM_CNT_PERIOD_1_10_US  (5)
 #define US_TO_CNT(t)            ((t) * 10 / TIM_CNT_PERIOD_1_10_US)
 
+// #define BEEP_ON
+
 #define LED_TASK_INTERVAL       (250000)
 #define BLDC_CTRL_TASK_INTERVAL (100)
 
@@ -28,6 +30,11 @@
 #define PHASE_C_GPIO_PORT_LOW   GPIOB
 #define PHASE_C_GPIO_HIGH       GPIO_Pin_10
 #define PHASE_C_GPIO_PORT_HIGH  GPIOA
+
+#define LOW_BITREG_ON  BSHR
+#define LOW_BITREG_OFF BCR
+#define HIGH_BITREG_ON BSHR
+#define HIGH_BITREG_OFF BCR
 
 #define INPUT_GPIO_PIN          GPIO_Pin_0
 #define INPUT_GPIO_PORT         GPIOA
